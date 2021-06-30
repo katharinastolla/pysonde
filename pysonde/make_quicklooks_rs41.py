@@ -15,6 +15,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+import metpy
 from matplotlib.ticker import AutoMinorLocator
 from mpl_toolkits.basemap import Basemap
 
