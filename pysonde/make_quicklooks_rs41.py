@@ -31,7 +31,7 @@ def read_ncfile(ncfile):
     attrs = ds.attrs
     ds = ds.metpy.quantify()
     ds = ds.isel({"sounding": 0})
-
+    
     most_common_vertical_movement = np.argmax(
         [np.count_nonzero(ds.dz > 0), np.count_nonzero(ds.dz < 0)]
     )
@@ -68,19 +68,22 @@ def plot_ptrh(ds, attrs, outputpath):
     # define outputname of .png-file:
     variable = "ptrelh"
     outputname = (
-        "{platform}_{instrument}{direction}_{variable}_{date}_{tempres}.png".format(
+        "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
             platform=attrs["platform"],
             instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
             direction=attrs["direction"],
             variable=variable,
-            date=attrs["date_YYYYMMDD"] + "_" + attrs["time_of_launch_HHmmss"],
-            tempres=attrs["resolution"].replace(" ", ""),
+            date=attrs["date_YYYYMMDDTHHMM"],
+            location_coord=attrs["location_coord"],
+            tempres=attrs["resolution"].replace(" ", "")
         )
     )
 
     fig, ax = plt.subplots(1, 3, sharey=True, figsize=(8, 6))
 
     # plot temperature, pressure, humidity in three panels:
+    print(ds.p.metpy.convert_units("hPa"))
+    print(ds.level)
     ax[0].plot(ds.ta, ds.level, ".-k", markersize=1)
     ax[1].plot(ds.p.metpy.convert_units("hPa"), ds.level, ".-k", markersize=1)
     ax[2].plot(ds.rh.metpy.convert_units("percent"), ds.level, ".-k", markersize=1)
@@ -131,11 +134,13 @@ def plot_ptrh(ds, attrs, outputpath):
     plt.subplots_adjust(top=0.9, right=0.85, left=0.15)
 
     fig.suptitle(
-        "%s, %s %sUTC"
+        "%s, %s %sUTC, %s, %s"
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
             attrs["time_of_launch_HHmmss"][:-2],
+            attrs["location_coord"],
+            attrs["direction"]
         ),
         fontsize=18,
     )
@@ -160,12 +165,13 @@ def plot_wind(ds, attrs, outputpath):
     # define outputname of .png-file:
     variable = "wind"
     outputname = (
-        "{platform}_{instrument}{direction}_{variable}_{date}_{tempres}.png".format(
+        "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
             platform=attrs["platform"],
             instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
             direction=attrs["direction"],
             variable=variable,
-            date=attrs["date_YYYYMMDD"] + "_" + attrs["time_of_launch_HHmmss"],
+            date=attrs["date_YYYYMMDDTHHMM"],
+            location_coord=attrs["location_coord"],
             tempres=attrs["resolution"].replace(" ", ""),
         )
     )
@@ -211,11 +217,13 @@ def plot_wind(ds, attrs, outputpath):
 
     plt.subplots_adjust(top=0.9, right=0.85, left=0.15)
     fig.suptitle(
-        "%s, %s %sUTC"
+        "%s, %s %sUTC, %s, %s"
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
             attrs["time_of_launch_HHmmss"][:-2],
+            attrs["location_coord"],
+            attrs["direction"]
         ),
         fontsize=18,
     )
@@ -239,10 +247,13 @@ def plot_map(ds, attrs, outputpath):
     logging.info("now plotting map of sounding.........")
     # define outputname of .png-file:
     variable = "trajectory"
-    outputname = "{platform}_SoundingProfile_{variable}_{date}_{tempres}.png".format(
+    outputname = "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
         platform=attrs["platform"],
+        instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
+        direction=attrs["direction"],
         variable=variable,
-        date=attrs["date_YYYYMMDD"] + "_" + attrs["time_of_launch_HHmmss"],
+        date=attrs["date_YYYYMMDDTHHMM"],
+        location_coord=attrs["location_coord"],
         tempres=attrs["resolution"].replace(" ", ""),
     )
 
@@ -311,12 +322,13 @@ def plot_map(ds, attrs, outputpath):
 
     # and the figure title:
     ax.set_title(
-        "%s, %s %sUTC %s"
+        "%s, %s %sUTC, %s, %s"
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
             attrs["time_of_launch_HHmmss"][:-2],
-            attrs["direction"],
+            attrs["location_coord"],
+            attrs["direction"]
         )
     )
 
