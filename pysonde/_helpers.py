@@ -43,15 +43,23 @@ def get_time_launch(self):
     return time_launch
 
 
+def get_location_coordinates(self):
+    logging.debug("Gathering location_coordinates information")
+    loc = self.meta_data["location_coord"]
+    
+    return loc
+
+
 def get_resolution(self):
     logging.debug("Gathering resolution information")
-    import numpy as np
+    time_resolution = str(self.meta_data["temporal_resolution"])+"s"
+    # import numpy as np
 
-    tindex = np.ma.masked_invalid(self.profile["flight_time"])
-    _, indices = np.unique(np.diff(tindex), return_inverse=True)
-    timediff = np.diff(tindex) / np.timedelta64(1, "s")
-    time_resolution = timediff[np.argmax(np.bincount(indices))]
-    time_resolution = str(int(time_resolution)) + "s"
+    # tindex = np.ma.masked_invalid(self.profile["flight_time"])
+    # _, indices = np.unique(np.diff(tindex), return_inverse=True)
+    # timediff = np.diff(tindex) / np.timedelta64(1, "s")
+    # time_resolution = timediff[np.argmax(np.bincount(indices))]
+    # time_resolution = str(int(time_resolution)) + "s"
 
     return time_resolution
 
@@ -79,6 +87,14 @@ def replace_placeholders_cfg(self, cfg, subset="global_attrs"):
         cfg[subset]["date_YYYYMMDD"] = cfg[subset]["date_YYYYMMDD"].format(
             day_launch=day_launch
         )
+    if "date_YYYYMMDDTHHMM" in cfg[subset].keys():
+        date_launch = get_time_launch(self).strftime("%Y%m%d"+"T"+"%H%M")
+        cfg[subset]["date_YYYYMMDDTHHMM"] = cfg[subset]["date_YYYYMMDDTHHMM"].format(
+            date_launch=date_launch
+        )
+    if "location_coord" in cfg[subset].keys():
+        loc = get_location_coordinates(self)
+        cfg[subset]["location_coord"] = loc
     if "resolution" in cfg[subset].keys():
         resolution = get_resolution(self)
         cfg[subset]["resolution"] = cfg[subset]["resolution"].format(
