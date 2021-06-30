@@ -83,6 +83,24 @@ def main():
     ds_sel = ds.isel({'sounding': 0})
     ds_sel = ds_sel.sortby(ds_sel.p, ascending=False)
     attrs = ds_sel.attrs
+    
+    most_common_vertical_movement = np.argmax(
+        [np.count_nonzero(ds.dz > 0), np.count_nonzero(ds.dz < 0)]
+    )
+
+    if most_common_vertical_movement == 0:
+        # Mostly ascent rates
+        attrs["direction"] = "AscentProfile"
+    elif most_common_vertical_movement == 1:
+        # Mostly descending rates
+        attrs["direction"] = "DescentProfile"
+    else:
+        logging.warning(
+            "Main flight direction (ascent/descent) of instrument"
+            " could not be identified!"
+        )
+        attrs["direction"] = "Unknow"
+        
     ds_sel = ds_sel.metpy.quantify()
 
     p = ds_sel.p
@@ -174,17 +192,33 @@ def main():
     h.plot_colormapped(u, v, wind_speed)  # Plot a line colored by wind speed
 
     # Set title
+    # print(ds_sel)
+    # print(ds_sel.sounding)
     sounding_name = ds_sel.sounding.values
     sounding_name_str = str(sounding_name.astype('str'))
-    skew.ax.set_title('{sounding}_{direction}'.format(
-        sounding=sounding_name_str,
-        direction=direction))
+    skew.ax.set_title(
+        "%s, %s %sUTC, %s, %s"
+        % (
+            attrs["location"],
+            attrs["date_YYYYMMDD"],
+            attrs["time_of_launch_HHmmss"][:-2],
+            attrs["location_coord"],
+            attrs["direction"]
+        ),
+        fontsize=18,
+    )
 
     if output is None:
-        filename_fmt = '{platform}_SoundingProfile_skew_{launch_time}_{res}.png'.format(platform=platform,
-                                                                                       res=resolution,
-                                                                                       launch_time=launch_time)
-        # filename_fmt = launch_time.strftime(filename_fmt)
+        filename_fmt = (
+        "{platform}_{instrument}_{direction}_skewT_{date}_{location_coord}_{tempres}.png".format(
+            platform=attrs["platform"],
+            instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
+            direction=attrs["direction"],
+            date=attrs["date_YYYYMMDDTHHMM"],
+            location_coord=attrs["location_coord"],
+            tempres=attrs["resolution"].replace(" ", "")
+        )
+        )
         output = filename_fmt
     else:
         output = output.format(platform=platform, direction=direction,
