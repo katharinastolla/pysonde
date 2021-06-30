@@ -82,11 +82,9 @@ def plot_ptrh(ds, attrs, outputpath):
     fig, ax = plt.subplots(1, 3, sharey=True, figsize=(8, 6))
 
     # plot temperature, pressure, humidity in three panels:
-    print(ds.p.metpy.convert_units("hPa"))
-    print(ds.level)
-    ax[0].plot(ds.ta, ds.level, ".-k", markersize=1)
-    ax[1].plot(ds.p.metpy.convert_units("hPa"), ds.level, ".-k", markersize=1)
-    ax[2].plot(ds.rh.metpy.convert_units("percent"), ds.level, ".-k", markersize=1)
+    ax[0].plot(ds.ta, ds.alt, ".-k", markersize=1)
+    ax[1].plot(ds.p.metpy.convert_units("hPa"), ds.alt, ".-k", markersize=1)
+    ax[2].plot(ds.rh.metpy.convert_units("percent"), ds.alt, ".-k", markersize=1)
 
     # do some cosmetics regarding the layout, axislabels, etc.:
     for i in range(3):
@@ -97,7 +95,7 @@ def plot_ptrh(ds, attrs, outputpath):
         ax[i].grid(axis="y", linestyle="-", color="gray")
 
         # set height axis to start at 0m:
-        ax[i].set_ylim(0, ax[i].get_ylim()[-1])
+        ax[i].set_ylim(0, 20000)
         # major minor ticks:
         ax[i].xaxis.set_minor_locator(AutoMinorLocator())
         ax[i].yaxis.set_minor_locator(AutoMinorLocator())
@@ -179,8 +177,8 @@ def plot_wind(ds, attrs, outputpath):
     fig, ax = plt.subplots(1, 2, sharey=True, figsize=(8, 6))
 
     # plot the data into subpanels:
-    ax[0].plot(ds.wspd, ds.level, ".-k", markersize=1)
-    ax[1].plot(ds.wdir, ds.level, ".-k", markersize=1)
+    ax[0].plot(ds.wspd, ds.alt, ".-k", markersize=1)
+    ax[1].plot(ds.wdir, ds.alt, ".-k", markersize=1)
 
     # general cosmetics:
     for i in range(2):
@@ -188,7 +186,7 @@ def plot_wind(ds, attrs, outputpath):
         ax[i].spines["right"].set_visible(False)
         ax[i].spines["left"].set_visible(False)
         ax[i].grid(axis="y", linestyle="-", color="gray")
-        ax[i].set_ylim(0, ax[i].get_ylim()[-1])
+        ax[i].set_ylim(0, 200000)
         ax[i].xaxis.set_minor_locator(AutoMinorLocator())
         ax[i].yaxis.set_minor_locator(AutoMinorLocator())
         ax[i].xaxis.set_major_locator(plt.MaxNLocator(4))
