@@ -68,7 +68,7 @@ def plot_ptrh(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
     # define outputname of .png-file:
     variable = "ptrelh"
     outputname = (
-        "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
+        "{platform}_{instrument}_{tempres}_{date}_{location_coord}_{variable}_{direction}.png".format(
             platform=attrs_ascent["platform"],
             instrument=attrs_ascent["instrument"].replace(" ", "").replace("_", ""),
             direction="comparison",
@@ -141,7 +141,7 @@ def plot_ptrh(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
         % (
             attrs_ascent["location"],
             attrs_ascent["date_YYYYMMDD"],
-            attrs_ascent["time_of_launch_HHmmss"][:-2],
+            attrs_ascent["time_of_launch_HHmmss"][:-3],
             attrs_ascent["location_coord"],
             "comparison"
         ),
@@ -168,7 +168,7 @@ def plot_wind(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
     # define outputname of .png-file:
     variable = "wind"
     outputname = (
-        "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
+        "{platform}_{instrument}_{tempres}_{date}_{location_coord}_{variable}_{direction}.png".format(
             platform=attrs_ascent["platform"],
             instrument=attrs_ascent["instrument"].replace(" ", "").replace("_", ""),
             direction="comparison",
@@ -228,7 +228,7 @@ def plot_wind(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
         % (
             attrs_ascent["location"],
             attrs_ascent["date_YYYYMMDD"],
-            attrs_ascent["time_of_launch_HHmmss"][:-2],
+            attrs_ascent["time_of_launch_HHmmss"][:-3],
             attrs_ascent["location_coord"],
             "comparison"
         ),
@@ -254,7 +254,7 @@ def plot_map(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
     logging.info("now plotting map of sounding.........")
     # define outputname of .png-file:
     variable = "trajectory"
-    outputname = "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
+    outputname = "{platform}_{instrument}_{tempres}_{date}_{location_coord}_{variable}_{direction}.png".format(
         platform=attrs_ascent["platform"],
         instrument=attrs_ascent["instrument"].replace(" ", "").replace("_", ""),
         direction="comparison",
@@ -350,7 +350,7 @@ def plot_map(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
         % (
             attrs_ascent["location"],
             attrs_ascent["date_YYYYMMDD"],
-            attrs_ascent["time_of_launch_HHmmss"][:-2],
+            attrs_ascent["time_of_launch_HHmmss"][:-3],
             attrs_ascent["location_coord"]
         )
     )

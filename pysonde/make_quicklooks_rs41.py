@@ -68,7 +68,7 @@ def plot_ptrh(ds, attrs, outputpath):
     # define outputname of .png-file:
     variable = "ptrelh"
     outputname = (
-        "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
+        "{platform}_{instrument}_{tempres}_{date}_{location_coord}_{variable}_{direction}.png".format(
             platform=attrs["platform"],
             instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
             direction=attrs["direction"],
@@ -136,7 +136,7 @@ def plot_ptrh(ds, attrs, outputpath):
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
-            attrs["time_of_launch_HHmmss"][:-2],
+            attrs["time_of_launch_HHmmss"][:-3],
             attrs["location_coord"],
             attrs["direction"]
         ),
@@ -163,7 +163,7 @@ def plot_wind(ds, attrs, outputpath):
     # define outputname of .png-file:
     variable = "wind"
     outputname = (
-        "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
+        "{platform}_{instrument}_{tempres}_{date}_{location_coord}_{variable}_{direction}.png".format(
             platform=attrs["platform"],
             instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
             direction=attrs["direction"],
@@ -186,7 +186,7 @@ def plot_wind(ds, attrs, outputpath):
         ax[i].spines["right"].set_visible(False)
         ax[i].spines["left"].set_visible(False)
         ax[i].grid(axis="y", linestyle="-", color="gray")
-        ax[i].set_ylim(0, 200000)
+        ax[i].set_ylim(0, 20000)
         ax[i].xaxis.set_minor_locator(AutoMinorLocator())
         ax[i].yaxis.set_minor_locator(AutoMinorLocator())
         ax[i].xaxis.set_major_locator(plt.MaxNLocator(4))
@@ -219,7 +219,7 @@ def plot_wind(ds, attrs, outputpath):
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
-            attrs["time_of_launch_HHmmss"][:-2],
+            attrs["time_of_launch_HHmmss"][:-3],
             attrs["location_coord"],
             attrs["direction"]
         ),
@@ -245,7 +245,7 @@ def plot_map(ds, attrs, outputpath):
     logging.info("now plotting map of sounding.........")
     # define outputname of .png-file:
     variable = "trajectory"
-    outputname = "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
+    outputname = "{platform}_{instrument}_{tempres}_{date}_{location_coord}_{variable}_{direction}.png".format(
         platform=attrs["platform"],
         instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
         direction=attrs["direction"],
@@ -327,7 +327,7 @@ def plot_map(ds, attrs, outputpath):
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
-            attrs["time_of_launch_HHmmss"][:-2],
+            attrs["time_of_launch_HHmmss"][:-3],
             attrs["location_coord"],
             attrs["direction"]
         )

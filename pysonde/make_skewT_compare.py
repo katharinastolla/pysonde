@@ -30,11 +30,9 @@ def get_args():
                         help="Converted sounding file (netCDF)", default=None,
                         required=True)
 
-    parser.add_argument("-o", "--outputfile", metavar="/some/example/path/filename.pdf",
-                        help="Output filename for skewT diagram (all file endings"\
-                             " of matplotlib are supported. Formats can be used as well"\
-                             " ({platform}, {direction}, {resolution}, %%Y, %%m, %%d, ...",
-                        default=None,
+    parser.add_argument("-o", "--outputpath", metavar="/some/example/path",
+                        help="Output path for skewT diagram",
+                        default="./",
                         required=False)
 
     parser.add_argument('-v', '--verbose', metavar="DEBUG",
@@ -81,7 +79,7 @@ def main():
     # Define input file
     file_ascent = args['inputfile ascent']
     file_descent = args['inputfile descent']
-    output = args['outputfile']
+    outputpath = args['outputpath']
 
     ds_ascent = xr.open_dataset(file_ascent)
     ds_descent = xr.open_dataset(file_descent)
@@ -220,30 +218,34 @@ def main():
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
-            attrs["time_of_launch_HHmmss"][:-2],
+            attrs["time_of_launch_HHmmss"][:-3],
             attrs["location_coord"]
         ),
         fontsize=18,
     )
 
-    if output is None:
-        filename_fmt = (
-        "{platform}_{instrument}_{direction}_skewT_{date}_{location_coord}_{tempres}.png".format(
-            platform=attrs["platform"],
-            instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
-            direction="comparison",
-            date=attrs["date_YYYYMMDDTHHMM"],
-            location_coord=attrs["location_coord"],
-            tempres=attrs["resolution"].replace(" ", "")
-        )
-        )
-        output = filename_fmt
-    else:
-        output = output.format(platform=platform, direction=direction,
-            resolution=resolution)
-        # output = launch_time.strftime(output)
-    logging.info('Write output to {}'.format(output))
-    plt.savefig(output)
+    # if output is None:
+    filename_fmt = (
+    "{platform}_{instrument}_{tempres}_{date}_{location_coord}_skewT_{direction}.png".format(
+        platform=attrs["platform"],
+        instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
+        direction="comparison",
+        date=attrs["date_YYYYMMDDTHHMM"],
+        location_coord=attrs["location_coord"],
+        tempres=attrs["resolution"].replace(" ", "")
+    )
+    )
+    # else:
+    #     output = output.format(platform=platform, direction=direction,
+    #         resolution=resolution)
+    #     # output = launch_time.strftime(output)
+    output = filename_fmt
+    # else:
+    #     output = output.format(platform=platform, direction=direction,
+    #         resolution=resolution)
+    #     # output = launch_time.strftime(output)
+    logging.info('Write output to {}'.format(outputpath+output))
+    plt.savefig(outputpath+output)
 
 
 if __name__ == '__main__':
