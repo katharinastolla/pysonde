@@ -155,11 +155,12 @@ def main():
 
     # Plot the data using normal plotting functions, in this case using
     # log scaling in Y, as dictated by the typical meteorological plot
-    skew.plot(p, T, 'r')
-    skew.plot(p, Td, 'g')
+    skew.plot(p, T, 'r', label='temperature, ascent')
+    skew.plot(p, Td, 'g', label='dew point temperature, ascent')
     
-    skew.plot(p_descent, T_descent, color='pink')
-    skew.plot(p_descent, Td_descent, color='palegreen')
+    skew.plot(p_descent, T_descent, color='pink', label='temperature, descent')
+    skew.plot(p_descent, Td_descent, color='palegreen', label='dew point temperature, descent')
+    plt.legend(loc='lower left')
     # Plot only specific barbs to increase visibility
     pressure_levels_barbs = np.logspace(0.1, 1, 50)*100
 
