@@ -26,7 +26,7 @@ def read_ncfile(ncfile):
     INPUT: path+filename of netcdf-file
     OUTPUT: dictionnary with all variables and attributes.
     """
-
+    
     ds = xr.open_dataset(ncfile)
     attrs = ds.attrs
     ds = ds.metpy.quantify()
@@ -52,7 +52,7 @@ def read_ncfile(ncfile):
     return ds, attrs
 
 
-def plot_ptrh(ds, attrs, outputpath):
+def plot_ptrh(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
     """
     routine plots vertical profiles of temperature, pressure, rel humidity and
     saves plot as .png
@@ -69,22 +69,25 @@ def plot_ptrh(ds, attrs, outputpath):
     variable = "ptrelh"
     outputname = (
         "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
-            platform=attrs["platform"],
-            instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
-            direction=attrs["direction"],
+            platform=attrs_ascent["platform"],
+            instrument=attrs_ascent["instrument"].replace(" ", "").replace("_", ""),
+            direction="comparison",
             variable=variable,
-            date=attrs["date_YYYYMMDDTHHMM"],
-            location_coord=attrs["location_coord"],
-            tempres=attrs["resolution"].replace(" ", "")
+            date=attrs_ascent["date_YYYYMMDDTHHMM"],
+            location_coord=attrs_ascent["location_coord"],
+            tempres=attrs_ascent["resolution"].replace(" ", "")
         )
     )
 
     fig, ax = plt.subplots(1, 3, sharey=True, figsize=(8, 6))
 
     # plot temperature, pressure, humidity in three panels:
-    ax[0].plot(ds.ta, ds.alt, ".-k", markersize=1)
-    ax[1].plot(ds.p.metpy.convert_units("hPa"), ds.alt, ".-k", markersize=1)
-    ax[2].plot(ds.rh.metpy.convert_units("percent"), ds.alt, ".-k", markersize=1)
+    ax[0].plot(ds_ascent.ta, ds_ascent.alt, color="green", markersize=1)
+    ax[0].plot(ds_descent.ta, ds_descent.alt, color="red", markersize=1)
+    ax[1].plot(ds_ascent.p.metpy.convert_units("hPa"), ds_ascent.alt, color="green", markersize=1)
+    ax[1].plot(ds_descent.p.metpy.convert_units("hPa"), ds_descent.alt, color="red", markersize=1)
+    ax[2].plot(ds_ascent.rh.metpy.convert_units("percent"), ds_ascent.alt, color="green", markersize=1, label="ascent")
+    ax[2].plot(ds_descent.rh.metpy.convert_units("percent"), ds_descent.alt, color="red", markersize=1, label="descent")
 
     # do some cosmetics regarding the layout, axislabels, etc.:
     for i in range(3):
@@ -128,17 +131,19 @@ def plot_ptrh(ds, attrs, outputpath):
     ax[0].set_xlabel("Temperature [$^\circ$C]", fontsize=14)
     ax[1].set_xlabel("Pressure [hPa]", fontsize=14)
     ax[2].set_xlabel("Rel Humidity [%]", fontsize=14)
+    
+    ax[2].legend()
 
     plt.subplots_adjust(top=0.9, right=0.85, left=0.15)
 
     fig.suptitle(
         "%s, %s %sUTC, %s, %s"
         % (
-            attrs["location"],
-            attrs["date_YYYYMMDD"],
-            attrs["time_of_launch_HHmmss"][:-2],
-            attrs["location_coord"],
-            attrs["direction"]
+            attrs_ascent["location"],
+            attrs_ascent["date_YYYYMMDD"],
+            attrs_ascent["time_of_launch_HHmmss"][:-2],
+            attrs_ascent["location_coord"],
+            "comparison"
         ),
         fontsize=18,
     )
@@ -148,7 +153,7 @@ def plot_ptrh(ds, attrs, outputpath):
     logging.info("{} profiles saved at {}".format(variable, outputpath + outputname))
 
 
-def plot_wind(ds, attrs, outputpath):
+def plot_wind(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
     """
     routine plots vertical profiles of wind speed and direction
     and saves plot as .png
@@ -164,21 +169,23 @@ def plot_wind(ds, attrs, outputpath):
     variable = "wind"
     outputname = (
         "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
-            platform=attrs["platform"],
-            instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
-            direction=attrs["direction"],
+            platform=attrs_ascent["platform"],
+            instrument=attrs_ascent["instrument"].replace(" ", "").replace("_", ""),
+            direction="comparison",
             variable=variable,
-            date=attrs["date_YYYYMMDDTHHMM"],
-            location_coord=attrs["location_coord"],
-            tempres=attrs["resolution"].replace(" ", ""),
+            date=attrs_ascent["date_YYYYMMDDTHHMM"],
+            location_coord=attrs_ascent["location_coord"],
+            tempres=attrs_ascent["resolution"].replace(" ", ""),
         )
     )
 
     fig, ax = plt.subplots(1, 2, sharey=True, figsize=(8, 6))
 
     # plot the data into subpanels:
-    ax[0].plot(ds.wspd, ds.alt, ".-k", markersize=1)
-    ax[1].plot(ds.wdir, ds.alt, ".-k", markersize=1)
+    ax[0].plot(ds_ascent.wspd, ds_ascent.alt, color="green", markersize=1)
+    ax[0].plot(ds_descent.wspd, ds_descent.alt, color="red", markersize=1)
+    ax[1].plot(ds_ascent.wdir, ds_ascent.alt, color="green", markersize=1, label="ascent")
+    ax[1].plot(ds_descent.wdir, ds_descent.alt, color="red", markersize=1, label="descent")
 
     # general cosmetics:
     for i in range(2):
@@ -186,7 +193,7 @@ def plot_wind(ds, attrs, outputpath):
         ax[i].spines["right"].set_visible(False)
         ax[i].spines["left"].set_visible(False)
         ax[i].grid(axis="y", linestyle="-", color="gray")
-        ax[i].set_ylim(0, 200000)
+        ax[i].set_ylim(0, 20000)
         ax[i].xaxis.set_minor_locator(AutoMinorLocator())
         ax[i].yaxis.set_minor_locator(AutoMinorLocator())
         ax[i].xaxis.set_major_locator(plt.MaxNLocator(4))
@@ -212,16 +219,18 @@ def plot_wind(ds, attrs, outputpath):
 
     ax[0].set_xlabel("Wind Speed [m s$^{-1}$]", fontsize=14)
     ax[1].set_xlabel("Wind Direction [$^\circ$]", fontsize=14)
+    
+    ax[1].legend()
 
     plt.subplots_adjust(top=0.9, right=0.85, left=0.15)
     fig.suptitle(
         "%s, %s %sUTC, %s, %s"
         % (
-            attrs["location"],
-            attrs["date_YYYYMMDD"],
-            attrs["time_of_launch_HHmmss"][:-2],
-            attrs["location_coord"],
-            attrs["direction"]
+            attrs_ascent["location"],
+            attrs_ascent["date_YYYYMMDD"],
+            attrs_ascent["time_of_launch_HHmmss"][:-2],
+            attrs_ascent["location_coord"],
+            "comparison"
         ),
         fontsize=18,
     )
@@ -231,7 +240,7 @@ def plot_wind(ds, attrs, outputpath):
     logging.info("Wind profile saved at {}".format(outputpath + outputname))
 
 
-def plot_map(ds, attrs, outputpath):
+def plot_map(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
     """
     routine plots balloon flight on a map.
     INPUT:
@@ -246,23 +255,33 @@ def plot_map(ds, attrs, outputpath):
     # define outputname of .png-file:
     variable = "trajectory"
     outputname = "{platform}_{instrument}_{direction}_{variable}_{date}_{location_coord}_{tempres}.png".format(
-        platform=attrs["platform"],
-        instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
-        direction=attrs["direction"],
+        platform=attrs_ascent["platform"],
+        instrument=attrs_ascent["instrument"].replace(" ", "").replace("_", ""),
+        direction="comparison",
         variable=variable,
-        date=attrs["date_YYYYMMDDTHHMM"],
-        location_coord=attrs["location_coord"],
-        tempres=attrs["resolution"].replace(" ", ""),
+        date=attrs_ascent["date_YYYYMMDDTHHMM"],
+        location_coord=attrs_ascent["location_coord"],
+        tempres=attrs_ascent["resolution"].replace(" ", ""),
     )
 
     # fig = plt.figure(figsize=(8, 6))
     fig, ax = plt.subplots(1, figsize=(8, 6))
     # determine the boundaries of the map from sounding lon and lat:
-    maxlon = math.ceil(np.max(ds.lon) / 0.5) * 0.5
-    minlon = math.floor(np.min(ds.lon) / 0.5) * 0.5
-
-    maxlat = math.ceil(np.max(ds.lat) / 0.5) * 0.5
-    minlat = math.floor(np.min(ds.lat) / 0.5) * 0.5
+    maxlon_ascent = math.ceil(np.max(ds_ascent.lon) / 0.5) * 0.5
+    maxlon_descent = math.ceil(np.max(ds_descent.lon) / 0.5) * 0.5
+    maxlon = max(maxlon_ascent, maxlon_descent)
+    
+    minlon_ascent = math.floor(np.min(ds_ascent.lon) / 0.5) * 0.5
+    minlon_descent = math.floor(np.min(ds_descent.lon) / 0.5) * 0.5
+    minlon = min(minlon_ascent, minlon_descent)
+    
+    maxlat_ascent = math.ceil(np.max(ds_ascent.lat) / 0.5) * 0.5
+    maxlat_descent = math.ceil(np.max(ds_descent.lat) / 0.5) * 0.5
+    maxlat = max(maxlat_ascent, maxlat_descent)
+    
+    minlat_ascent = math.floor(np.min(ds_ascent.lat) / 0.5) * 0.5
+    minlat_descent = math.floor(np.min(ds_descent.lat) / 0.5) * 0.5
+    minlat = min(minlat_ascent, minlat_descent)
 
     # set up basemap projection
     try:
@@ -306,30 +325,33 @@ def plot_map(ds, attrs, outputpath):
     m.drawmeridians(np.arange(-100, 0, 0.25), labels=[0, 0, 0, 1])
 
     # plot balloon path:
-    x, y = m(ds.lon, ds.lat)
-    sca = m.scatter(
-        x, y, marker=".", c=ds.alt, cmap="Reds", vmin=0.0, vmax=30000.0, zorder=10
+    x_ascent, y_ascent = m(ds_ascent.lon, ds_ascent.lat)
+    sca_ascent = m.scatter(
+        x_ascent, y_ascent, marker=".", c=ds_ascent.alt, cmap="Reds", vmin=0.0, vmax=30000.0, zorder=10
+    )
+    x_descent, y_descent = m(ds_descent.lon, ds_descent.lat)
+    sca_descent = m.scatter(
+        x_descent, y_descent, marker=".", c=ds_descent.alt, cmap="Reds", vmin=0.0, vmax=30000.0, zorder=10
     )
     fig.subplots_adjust(right=0.75, left=0.1)
     cax = plt.axes([0.85, 0.27, 0.025, 0.45])
-    plt.colorbar(sca, cax=cax, label="Altitude [m]")
+    plt.colorbar(sca_ascent, cax=cax, label="Altitude [m]")
+    # plt.colorbar(sca_descent, cax=cax, label="Altitude [m]")
     # m.plot(x, y, '-k')
 
-    # plot launch position as red square:
-    if attrs["direction"]=="AscentProfile":
-        m.plot(float(ds.lon[0]), float(ds.lat[0]), "sb", markersize=5, zorder=15)
-    elif attrs["direction"]=="DescentProfile":
-        m.plot(float(ds.lon[-1]), float(ds.lat[-1]), "sb", markersize=5, zorder=15)
+    # plot launch and end position as square:
+    m.plot(float(ds_ascent.lon[0]), float(ds_ascent.lat[0]), "sb", color="red", markersize=5, zorder=15)
+    m.plot(float(ds_ascent.lon[-1]), float(ds_ascent.lat[-1]), "sb", color="navy", markersize=5, zorder=15)
+    m.plot(float(ds_descent.lon[-1]), float(ds_descent.lat[-1]), "sb", color="red", markersize=5, zorder=15)
 
     # and the figure title:
     ax.set_title(
-        "%s, %s %sUTC, %s, %s"
+        "%s, %s %sUTC, %s"
         % (
-            attrs["location"],
-            attrs["date_YYYYMMDD"],
-            attrs["time_of_launch_HHmmss"][:-2],
-            attrs["location_coord"],
-            attrs["direction"]
+            attrs_ascent["location"],
+            attrs_ascent["date_YYYYMMDD"],
+            attrs_ascent["time_of_launch_HHmmss"][:-2],
+            attrs_ascent["location_coord"]
         )
     )
 
@@ -360,8 +382,8 @@ def main():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "d:n:o:i:h",
-            ["date=", "inputncfile=", "outputpath=", "inputpath=", "help"],
+            "d:n:o:i:j:h",
+            ["date=", "inputncfile=", "outputpath=", "inputpath=", "inputfile_descent=", "help"],
         )
     except getopt.GetoptError:
         print(
@@ -385,24 +407,24 @@ def main():
                 "default outputpath: current directory. if -o is specified, outputpath is created if not yet existant."
             )
             sys.exit()
-
-        elif opt in ("-p", "--inputpath"):
-            inputpath = arg
+            
+        if opt in ("-i", "--inputfile ascent"):
+            ncfile_ascent = arg
+            
+        if opt in ("-j", "--inputfile descent"):
+            ncfile_descent = arg
+        
         elif opt in ("-d", "--date"):
             try:
-                ncfile = glob.glob(inputpath + "*%s*.nc" % arg)[0]
+                ncfile_ascent = glob.glob(inputpath + "AscentProfile_*%s*.nc" % arg)[0]
+                ncfile_descent = glob.glob(inputpath + "DescentProfile_*%s*.nc" % arg)[0]
             except IndexError:
                 logging.error(
                     "couldnt find your specified input: check date"
                     " or/and inputpath selection."
                 )
                 sys.exit()
-        elif opt in ("-i", "--inputncfile"):
-            ncfile = arg
-            if not os.path.isfile(ncfile):
-                logging.error("couldnt find your specified inputfile.")
-                sys.exit()
-
+        
         elif opt in ("-o", "--outputpath"):
             outputpath = arg
             # check if there's a backslash after the outputpath-argument:
@@ -411,29 +433,26 @@ def main():
             if not os.path.isdir(outputpath):
                 os.mkdir(outputpath)
 
-        if ncfile is None:
-            logging.error(
-                "Input file must be defined with either"
-                " --inputncfile or --inputpath and --date"
-            )
-            sys.exit()
-
-    logging.info("plotting sounding file %s" % ncfile)
+    logging.info("plotting comparing sounding file")
 
     # read netcdf-variables into dictionnary:
-    radiosonde_ds, radiosonde_attrs = read_ncfile(ncfile)
+    radiosonde_ds_ascent, radiosonde_attrs_ascent = read_ncfile(ncfile_ascent)
+    radiosonde_ds_descent, radiosonde_attrs_descent = read_ncfile(ncfile_descent)
 
     # make first quicklook: p, relh, T- profiles.
-    plot_ptrh(radiosonde_ds, radiosonde_attrs, outputpath)
+    plot_ptrh(radiosonde_ds_ascent, radiosonde_attrs_ascent,
+              radiosonde_ds_descent, radiosonde_attrs_descent, outputpath)
 
     # now also plot wind speed and direction:
-    plot_wind(radiosonde_ds, radiosonde_attrs, outputpath)
+    plot_wind(radiosonde_ds_ascent, radiosonde_attrs_ascent,
+              radiosonde_ds_descent, radiosonde_attrs_descent, outputpath)
 
     # also plot the sounding onto a map: REQUIRES BASEMAP-DATA-HIRES package
     # to be installed (e.g. through
     # conda install -c conda-forge basemap-data-hires)
 
-    plot_map(radiosonde_ds, radiosonde_attrs, outputpath)
+    plot_map(radiosonde_ds_ascent, radiosonde_attrs_ascent,
+             radiosonde_ds_descent, radiosonde_attrs_descent, outputpath)
 
 
 if __name__ == "__main__":

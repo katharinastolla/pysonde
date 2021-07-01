@@ -22,7 +22,11 @@ import xarray as xr
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--inputfile", metavar="INPUT_FILE",
+    parser.add_argument("-i", "--inputfile ascent", metavar="INPUT_FILE ASCENT",
+                        help="Converted sounding file (netCDF)", default=None,
+                        required=True)
+    
+    parser.add_argument("-j", "--inputfile descent", metavar="INPUT_FILE DESCENT",
                         help="Converted sounding file (netCDF)", default=None,
                         required=True)
 
@@ -75,17 +79,21 @@ def main():
     setup_logging(args['verbose'])
 
     # Define input file
-    file = args['inputfile']
+    file_ascent = args['inputfile ascent']
+    file_descent = args['inputfile descent']
     output = args['outputfile']
 
-    ds = xr.open_dataset(file)
+    ds_ascent = xr.open_dataset(file_ascent)
+    ds_descent = xr.open_dataset(file_descent)
 
-    ds_sel = ds.isel({'sounding': 0})
-    ds_sel = ds_sel.sortby(ds_sel.p, ascending=False)
-    attrs = ds_sel.attrs
+    ds_sel_ascent = ds_ascent.isel({'sounding': 0})
+    ds_sel_ascent = ds_sel_ascent.sortby(ds_sel_ascent.p, ascending=False)
+    ds_sel_descent = ds_descent.isel({'sounding': 0})
+    ds_sel_descent = ds_sel_descent.sortby(ds_sel_descent.p, ascending=False)
+    attrs = ds_sel_ascent.attrs
     
     most_common_vertical_movement = np.argmax(
-        [np.count_nonzero(ds.dz > 0), np.count_nonzero(ds.dz < 0)]
+        [np.count_nonzero(ds_ascent.dz > 0), np.count_nonzero(ds_ascent.dz < 0)]
     )
 
     if most_common_vertical_movement == 0:
@@ -101,14 +109,18 @@ def main():
         )
         attrs["direction"] = "Unknow"
         
-    ds_sel = ds_sel.metpy.quantify()
+    ds_sel_ascent = ds_sel_ascent.metpy.quantify()
+    ds_sel_descent = ds_sel_descent.metpy.quantify()
 
-    p = ds_sel.p
-    T = ds_sel.ta
-    Td = ds_sel.dp
-    wind_speed = ds_sel.wspd
-    wind_dir = ds_sel.wdir
-    ascend_rate = ds_sel.dz
+    p = ds_sel_ascent.p
+    T = ds_sel_ascent.ta
+    Td = ds_sel_ascent.dp
+    p_descent = ds_sel_descent.p
+    T_descent = ds_sel_descent.ta
+    Td_descent = ds_sel_descent.dp
+    wind_speed = ds_sel_ascent.wspd
+    wind_dir = ds_sel_ascent.wdir
+    ascend_rate = ds_sel_ascent.dz
     
     launch_time = attrs['time_of_launch_HHmmss']
     platform = attrs['platform']
@@ -117,9 +129,14 @@ def main():
     # Filter nans
     idx = np.where((np.isnan(T)+np.isnan(Td)+np.isnan(p)+
                     np.isnan(wind_speed)+np.isnan(wind_dir)) == False, True, False)
+    idx_descent = np.where((np.isnan(T_descent)+np.isnan(Td_descent)+
+                            np.isnan(p_descent)) == False, True, False)
     p = p[idx].metpy.convert_units('hPa')
     T = T[idx].metpy.convert_units('degC')
     Td = Td[idx].metpy.convert_units('degC')
+    p_descent = p_descent[idx_descent].metpy.convert_units('hPa')
+    T_descent = T_descent[idx_descent].metpy.convert_units('degC')
+    Td_descent = Td_descent[idx_descent].metpy.convert_units('degC')
     wind_speed = wind_speed[idx].metpy.convert_units('meter / second')
     wind_dir = wind_dir[idx]
 
@@ -140,6 +157,9 @@ def main():
     # log scaling in Y, as dictated by the typical meteorological plot
     skew.plot(p, T, 'r')
     skew.plot(p, Td, 'g')
+    
+    skew.plot(p_descent, T_descent, color='pink')
+    skew.plot(p_descent, Td_descent, color='palegreen')
     # Plot only specific barbs to increase visibility
     pressure_levels_barbs = np.logspace(0.1, 1, 50)*100
 
@@ -195,13 +215,12 @@ def main():
     # sounding_name = ds_sel.sounding.values
     # sounding_name_str = str(sounding_name.astype('str'))
     skew.ax.set_title(
-        "%s, %s %sUTC, %s, %s"
+        "%s, %s %sUTC, %s"
         % (
             attrs["location"],
             attrs["date_YYYYMMDD"],
             attrs["time_of_launch_HHmmss"][:-2],
-            attrs["location_coord"],
-            attrs["direction"]
+            attrs["location_coord"]
         ),
         fontsize=18,
     )
@@ -211,7 +230,7 @@ def main():
         "{platform}_{instrument}_{direction}_skewT_{date}_{location_coord}_{tempres}.png".format(
             platform=attrs["platform"],
             instrument=attrs["instrument"].replace(" ", "").replace("_", ""),
-            direction=attrs["direction"],
+            direction="comparison",
             date=attrs["date_YYYYMMDDTHHMM"],
             location_coord=attrs["location_coord"],
             tempres=attrs["resolution"].replace(" ", "")

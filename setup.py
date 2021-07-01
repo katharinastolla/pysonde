@@ -68,7 +68,9 @@ setup(
         "console_scripts": [
             "sounding_converter=pysonde.pysonde:main",
             "sounding_visualize=pysonde.make_quicklooks_rs41:main",
-            "sounding_skewT=pysonde.make_skewT:main"
+            "sounding_skewT=pysonde.make_skewT:main",
+            "sounding_compare=pysonde.make_quicklooks_compare:main",
+            "sounding_skewT_compare=pysonde.make_skewT_compare:main"
         ]
     },
 )

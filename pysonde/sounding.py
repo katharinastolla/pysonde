@@ -133,7 +133,24 @@ class Sounding:
         most_common_diff = np.argmax(time_differences_counts)
         temporal_resolution = most_common_diff
         self.meta_data["temporal_resolution"] = temporal_resolution
-
+        
+    def generate_location_coord(self):
+        """Generate unique id of sounding"""
+        lat=self.profile.latitude.values[0]
+        if lat > 0:
+            lat="{:04.1f}".format(lat)
+        else:
+            lat="{:05.1f}".format(lat)
+            
+        lon=self.profile.longitude.values[0]
+        if lon > 0:
+            lon="{:04.1f}".format(lon)
+        else:
+            lon="{:05.1f}".format(lon)
+            
+        loc = str(lat)+"N"+str(lon)+"E"
+        self.meta_data["location_coord"] = loc
+    
     def generate_sounding_id(self, config):
         """Generate unique id of sounding"""
         id = config.level1.variables.sounding.format.format(
@@ -181,6 +198,8 @@ class Sounding:
         self.meta_data["launch_time_dt"] = self.profile.flight_time.iloc[0]
         # Resolution
         self.calc_temporal_resolution()
+        # Location
+        self.generate_location_coord()
         # Sounding ID
         self.generate_sounding_id(config)
         self.get_sonde_type()
@@ -198,7 +217,7 @@ class Sounding:
         merged_conf = OmegaConf.merge(config.level1, meta_data_cfg, runtime_cfg)
         merged_conf._set_parent(OmegaConf.merge(config, meta_data_cfg, runtime_cfg))
         ds = dc.create_dataset(merged_conf)
-
+        
         ds.flight_time.data = xr.DataArray(
             [self.profile.flight_time], dims=["sounding", "level"]
         )
@@ -291,14 +310,29 @@ class Sounding:
         """
         Saves sounding to disk
         """
+        if self.meta_data["sounding_direction"]=="descent":
+            direction="DescentProfile"
+        elif self.meta_data["sounding_direction"]=="ascent":
+            direction="AscentProfile"
+            
         output = output_fmt.format(
             platform=cfg.main.platform,
+            instrument=self.dataset.attrs["instrument"].replace(" ", "").replace("_", ""),
+            date_YYYYMMDDTHHMM=self.dataset.attrs["date_YYYYMMDDTHHMM"],
+            location_coord=self.dataset.attrs["location_coord"],
             campaign=cfg.main.campaign,
             campaign_id=cfg.main.campaign_id,
-            direction=self.meta_data["sounding_direction"],
+            direction=direction
         )
         output = self.meta_data["launch_time_dt"].strftime(output)
         directory = os.path.dirname(output)
         Path(directory).mkdir(parents=True, exist_ok=True)
         self.dataset.to_netcdf(output)
         logging.info(f"Sounding written to {output}")
+        
+        if direction=="DescentProfile":
+            id_file_descent = open("/Users/admin2/Documents/MPI/pysonde/id_file_descent.txt", "w")
+            id_file_descent.write(f"{output}")
+        elif direction=="AscentProfile":
+            id_file_ascent = open("/Users/admin2/Documents/MPI/pysonde/id_file_ascent.txt", "w")
+            id_file_ascent.write(f"{output}")
