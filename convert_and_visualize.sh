@@ -1,6 +1,6 @@
-pip install -r requirements.txt
-python setup.py sdist
-pip install dist/pysonde*.tar.gz
+#pip install -r requirements.txt
+#python setup.py sdist
+#pip install dist/pysonde*.tar.gz
 
 output_folder="/Volumes/scientists/SO284/data/radiosoundings"
 
