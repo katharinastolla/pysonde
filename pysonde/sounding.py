@@ -153,10 +153,14 @@ class Sounding:
     
     def generate_sounding_id(self, config):
         """Generate unique id of sounding"""
+        lat_str = "{:.3f}".format(self.profile["latitude"].values[0])
+        lat = lat_str.zfill(6)
+        lon_str = "{:.3f}".format(self.profile["longitude"].values[0])
+        lon = lon_str.zfill(7)
         id = config.level1.variables.sounding.format.format(
             direction=self.meta_data["sounding_direction"],
-            lat=self.profile.latitude.values[0],
-            lon=self.profile.longitude.values[0],
+            lat = lat,
+            lon = lon,
             time=self.meta_data["launch_time_dt"].strftime("%Y%m%d%H%M"),
         )
         self.meta_data["sounding"] = id
@@ -285,8 +289,11 @@ class Sounding:
             if var_int == "launch_time":
                 ds[var_out].data = [self.meta_data["launch_time_dt"]]
             elif var_int == "sounding":
-                lat = self.profile["latitude"][0].values
-                lon = self.profile["longitude"][0].values
+                lat_str = "{:.3f}".format(self.profile["latitude"].values[0])
+                lat = lat_str.zfill(6)
+                lon_str = "{:.3f}".format(self.profile["longitude"].values[0])
+                lon = lon_str.zfill(7)
+                # location_coord = self.meta_data["location_coord"]
                 direction = self.meta_data["sounding_direction"]
                 time = self.meta_data["launch_time_dt"]
                 id_fmt = config.level1.variables[var_int].format

@@ -194,7 +194,7 @@ variables:
             description: "unique string describing the soundings origin (PLATFORM_SND-DIRECTION_LAT_LON_TIME)"
         encodings:
             dtype: "str"
-        format: ${main.platform}__{direction}__{lat:3.2f}_{lon:4.2f}__%Y%m%d%H%M
+        format: ${main.platform}__{direction}__{lat}__{lon}__%Y%m%d%H%M
         coordinates:
             - sounding
         internal_varname : "sounding"

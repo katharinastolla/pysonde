@@ -113,8 +113,8 @@ def main():
     resolution = attrs['resolution'].replace(' ', '')
     
     # Filter nans
-    idx = np.where((np.isnan(T)+np.isnan(Td)+np.isnan(p)+
-                    np.isnan(wind_speed)+np.isnan(wind_dir)) == False, True, False)
+    idx = np.where((np.isnan(T)+np.isnan(Td)+np.isnan(p)) == False, True, False)
+                    # np.isnan(wind_speed)+np.isnan(wind_dir)) == False, True, False)
     p = p[idx].metpy.convert_units('hPa')
     T = T[idx].metpy.convert_units('degC')
     Td = Td[idx].metpy.convert_units('degC')
