@@ -154,14 +154,14 @@ class Sounding:
     def generate_sounding_id(self, config):
         """Generate unique id of sounding"""
         lat_str = "{:.3f}".format(self.profile["latitude"].values[0])
-        lat = lat_str.zfill(6)
+        lat = lat_str.zfill(7)
         lon_str = "{:.3f}".format(self.profile["longitude"].values[0])
         lon = lon_str.zfill(7)
         id = config.level1.variables.sounding.format.format(
-            direction=self.meta_data["sounding_direction"],
+            time=self.meta_data["launch_time_dt"].strftime("%Y%m%d%H%M"),
             lat = lat,
             lon = lon,
-            time=self.meta_data["launch_time_dt"].strftime("%Y%m%d%H%M"),
+            direction=self.meta_data["sounding_direction"]
         )
         self.meta_data["sounding"] = id
 
@@ -290,13 +290,15 @@ class Sounding:
                 ds[var_out].data = [self.meta_data["launch_time_dt"]]
             elif var_int == "sounding":
                 lat_str = "{:.3f}".format(self.profile["latitude"].values[0])
-                lat = lat_str.zfill(6)
+                lat = lat_str.zfill(7)
                 lon_str = "{:.3f}".format(self.profile["longitude"].values[0])
                 lon = lon_str.zfill(7)
                 # location_coord = self.meta_data["location_coord"]
                 direction = self.meta_data["sounding_direction"]
                 time = self.meta_data["launch_time_dt"]
                 id_fmt = config.level1.variables[var_int].format
+                # import pdb;
+                # pdb.set_trace()
                 id = id_fmt.format(lat=lat, lon=lon, direction=direction)
                 id = time.strftime(id)
                 try:
