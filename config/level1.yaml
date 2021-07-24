@@ -191,10 +191,10 @@ variables:
         attrs:
             cf_role: "trajecotry_id"
             long_name: "sounding identifier"
-            description: "unique string describing the soundings origin (PLATFORM_SND-DIRECTION_LAT_LON_TIME)"
+            description: "unique string describing the soundings origin (PLATFORM_TIME_LAT_LON_SND-DIRECTION)"
         encodings:
             dtype: "str"
-        format: ${main.platform}__{direction}__{lat}__{lon}__%Y%m%d%H%M
+        format: ${main.platform}__%Y%m%d%H%M__{lat}__{lon}__{direction}
         coordinates:
             - sounding
         internal_varname : "sounding"
