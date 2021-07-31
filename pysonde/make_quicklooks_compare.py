@@ -321,8 +321,8 @@ def plot_map(ds_ascent, attrs_ascent, ds_descent, attrs_descent, outputpath):
     m.drawmapboundary()
     m.shadedrelief()
     m.fillcontinents(color="#00a500")
-    m.drawparallels(np.arange(10, 70, 0.25), labels=[1, 1, 0, 0])
-    m.drawmeridians(np.arange(-100, 0, 0.25), labels=[0, 0, 0, 1])
+    m.drawparallels(np.arange(-10, 70, 0.2), labels=[1, 0, 0, 0])
+    m.drawmeridians(np.arange(-100, 0, 0.2), labels=[0, 0, 0, 1])
 
     # plot balloon path:
     x_ascent, y_ascent = m(ds_ascent.lon, ds_ascent.lat)

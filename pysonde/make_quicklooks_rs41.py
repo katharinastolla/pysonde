@@ -302,8 +302,10 @@ def plot_map(ds, attrs, outputpath):
     m.drawmapboundary()
     m.shadedrelief()
     m.fillcontinents(color="#00a500")
-    m.drawparallels(np.arange(10, 70, 0.25), labels=[1, 1, 0, 0])
-    m.drawmeridians(np.arange(-100, 0, 0.25), labels=[0, 0, 0, 1])
+    m.drawparallels(np.arange(-10, 70, 0.2), labels=[1, 0, 0, 0])
+    m.drawmeridians(np.arange(-100, 0, 0.2), labels=[0, 0, 0, 1])
+    # m.drawparallels(np.arange(10, 70, 0.25), labels=[1, 1, 0, 0])
+    # m.drawmeridians(np.arange(-100, 0, 0.25), labels=[0, 0, 0, 1])
 
     # plot balloon path:
     x, y = m(ds.lon, ds.lat)
